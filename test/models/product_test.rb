@@ -28,7 +28,7 @@ class ProductTest < ActiveSupport::TestCase
     assert product.valid?
   end
 
-  def new_product(image_url)
+  def new_product_with_image_url(image_url)
     Product.new(title:       "My Book Title",
                 description: "yyy",
                 price:       1,
@@ -40,12 +40,12 @@ class ProductTest < ActiveSupport::TestCase
              http://a.b.c/x/y/z/fred.gif }
     bad = %w{ fred.doc fred.gif/more fred.gif.more }
     
-    ok.each do |name|
-      assert new_product(name).valid?, "#{name} should be valid"
+    ok.each do |image_url|
+      assert new_product_with_image_url(image_url).valid?, "#{image_url} should be valid"
     end
 
-    bad.each do |name|
-      assert new_product(name).invalid?, "#{name} shouldn't be valid"
+    bad.each do |image_url|
+      assert new_product_with_image_url(image_url).invalid?, "#{image_url} shouldn't be valid"
     end
   end
 
@@ -58,5 +58,23 @@ class ProductTest < ActiveSupport::TestCase
     assert product.invalid?
     assert_equal [I18n.translate('errors.messages.taken')],
                  product.errors[:title]
+  end
+
+  test "product name length should be greater than or equal to 10 symbols" do
+    product = Product.new(price: 1,
+                          description: "yyy",
+                          image_url:   "zzz.jpg")
+    product.title = "Book"
+    assert product.invalid?
+    assert_equal ["is too short (minimum is 10 characters)"],
+      product.errors[:title]
+
+    product.title = "Book of N"
+    assert product.invalid?
+    assert_equal ["is too short (minimum is 10 characters)"], 
+      product.errors[:title]
+
+    product.title = "Book of N."
+    assert product.valid?
   end
 end
